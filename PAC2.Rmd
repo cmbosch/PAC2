@@ -500,7 +500,8 @@ RNAseqTutorialUOCv2.html
 
 Statistical analysis of RNA-seq data.pdf
 
+ENLACE A GitHub:
 
-
+https://github.com/cmbosch/PAC2
 
 
