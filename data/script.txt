@@ -1,0 +1,15 @@
+setwd("C:/Users/CarlesM/Desktop/pac2")
+getwd()
+
+targets <- read.csv2("./data/targets.csv", header = TRUE, sep = ";")
+knitr::kable(targets, booktabs = TRUE, caption = 'Content of the targets file used for the current analysis')
+
+
+muestras <- read.csv2(file.path("./data", "targets.csv"), head=T)
+misMuestras <- as.character (muestras$Sample)
+paraAnalisis <- c(sample(misMuestras[1:236], 10),
+                  sample(misMuestras[237:278], 10),
+                  sample(misMuestras[279:292], 10))
+alAnalisis <-muestras[muestras$Sample %in% paraAnalisis,]
+write.table(alAnalisis, file=file.path("./data", "targets.txt"),
+            sep="nt", row.names=FALSE, quote=FALSE)

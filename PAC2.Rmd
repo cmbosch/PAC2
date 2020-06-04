@@ -1,0 +1,506 @@
+---
+title: "PAC2"
+author: "Carles M. Bosch Herrera"
+date: "28/5/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+<h1> 1. Entorno de trabajo y lectura de ficheros </h1>
+Creamos el entorno de trabajo y leemos el fichero targets.csv
+
+```{r}
+setwd("C:/Users/CarlesM/Desktop/pac2")
+getwd()
+targets<- read.csv2(file.path("./data", "targets.csv"), head=T, sep=",")
+head(targets,5)
+
+```
+<h1> 2. Elección de datos de cada grupo de targets</h1>
+
+Escogemos los datos de cada grupo del archivo targets
+
+```{r}
+datos_NIT<-targets[targets$Group=="NIT",]
+head(datos_NIT,5)
+```
+
+
+
+```{r}
+datos_ELI<-targets[targets$Group=="ELI",]
+head(datos_ELI,5)
+```
+```{r}
+datos_SFI<-targets[targets$Group=="SFI",]
+head(datos_SFI,5)
+```
+
+<h1> 3. Extracción aleatoria de muestras de cada grupo</h1>
+Extraemos las 10 muestras aleatoriamente de cada grupo
+
+```{r}
+muestra.NIT = datos_NIT[sample(nrow(datos_NIT),10) , ]
+muestra.SFI = datos_SFI[sample(nrow(datos_SFI),10) , ]
+muestra.ELI = datos_ELI[sample(nrow(datos_ELI),10) , ]
+
+muestra.NIT
+muestra.SFI
+muestra.ELI
+
+```
+<h1> 4. Coincidencias con el archivo counts.csv</h1>
+
+Seleccionamos las columnas de counts que coincidan con la columna Sample-Name de los 30 targets y leemos el archivo resultante scounts. La elección de las columnas se ha hecho usando Excel
+
+
+```{r}
+scounts<- read.csv2(file.path("./data", "selectcounts.csv"), head=T, sep=";")
+str(scounts)
+```
+<h1> 5. Packages </h1>
+
+Ahora tendremos que cargar los paquetes que necesitaremos
+
+```{r}
+library(edgeR)
+library (limma)
+library(Glimma)
+library(gplots)
+library(org.Mm.eg.db)
+library(RColorBrewer)
+library(DESeq2)
+```
+<h1> 6. Lectura de datos y filtrado y eliminacion de genes con contajes bajos </h1>
+
+Los genes con recuentos muy bajos en todas las bibliotecas proporcionan poca evidencia en la expresión diferencial e interfieren con algunas de las aproximaciones estadísticas que se utilizan más adelante dentro del pipeleine del análisis.
+
+Asimismo añaden “ruido”" en el ajuste por múltiple testing mediante FDR, reduciendo “potencia estadística” en la detección de genes expresados diferencialmente (como ya hemos discutido en debates anteriores).
+
+Estos genes deben filtrarse antes de un análisis posterior.
+
+Hay diferentes maneras de filtrar genes poco expresados. En este caso establecemos optamos por retener los genes si se expresan en un conteo por millón (CPM) por encima de 0.5 en al menos dos muestras.
+
+Utilizaremos la función cpm del package edgeR para generar los valores de CPM y luego filtrar. Hay que tener presente que al convertir a CPM estamos normalizando segun el “Sequencing depth” de cada muestra.
+
+Nota: Secuencing depth es comúnmente un término usado para la secuenciación del genoma o del exoma y significa el número de lecturas que cubren cada posición.
+
+```{r}
+ rownames(scounts)<-scounts[,1]
+ scounts<-scounts[,-(1)]
+ library(edgeR)
+ dgeList_counts<-DGEList(scounts)
+ counts_cpm<-cpm(dgeList_counts,log=TRUE)
+ head(counts_cpm)
+```
+
+```{r}
+# Which values in myCPM are greater than 0.5?
+thresh <- counts_cpm > 0.5
+# This produces a logical matrix with TRUEs and FALSEs
+head(thresh)
+```
+
+```{r}
+# Summary of how many TRUEs there are in each row
+# There are 13142 genes that have TRUEs in all 30 samples.
+table(rowSums(thresh))
+```
+```{r}
+# we would like to keep genes that have at least 2 TRUES in each row of thresh
+keep <- rowSums(thresh) >= 2
+# Subset the rows of countdata to keep the more highly expressed genes
+counts.keep <- scounts[keep,]
+summary(keep)
+```
+```{r}
+dim(counts.keep)
+```
+En este caso, se usa un CPM de 0.5 ya que corresponde a un “recuento por gen” de 10-15 segun los “library size” de este conjunto de datos.
+
+Asimismo se utiliza la condición de que la la expresión sea en 2 o más “libraries”" ya que en este caso cada situación experimental contiene dos replicas y ello nos “asegura” que “analizaremos” genes que como mínimo se expresen en un grupo.
+
+Como regla general, se puede elegir un buen umbral identificando el CPM que corresponde a un recuento de 10.
+
+Se debe filtrar a partir de el objeto CPM en lugar de filtrar los counting data (recuentos directamente), ya que este último no tiene en cuenta las diferencias en los tamaños de biblioteca (library sizes) entre las muestras.
+
+
+
+```{r}
+# Let's have a look and see whether our threshold of 0.5 does indeed correspond to a count of about 10-15
+# We will look at the first sample
+plot(counts_cpm[,1],scounts[,1])
+```
+
+<h1> 7. Counts to DGEList object </h1>
+
+A continuación crearemos un objeto DGEList. Este es un objeto utilizado por edgeR para almacenar datos de recuento
+
+```{r}
+y <- DGEList(counts.keep)
+# have a look at y
+y
+```
+
+```{r}
+# See what slots are stored in y
+names(y)
+```
+
+```{r}
+# Library size information is stored in the samples slot
+y$samples
+```
+<h1> 8. Quality control</h1>
+
+Ahora que hemos eliminado los genes de baja expresión y hemos almacenado nuestros conteos en un objeto DGEList, vamos a llevar a cabo algunos gráficos que nos permitan realizar un pequeño informe de los mismos (Quality control).
+
+<h2>Library sizes and distribution plots</h2>
+
+Primero, podemos verificar cuántas lecturas tenemos para cada muestra en el objeto creado (counting data)
+
+```{r}
+y$samples$lib.size
+```
+
+<h1> 9. Diagrama de barras de los library sizes </h1>
+También podemos plotear a partir de un diagrama de barras de los “library sizes”" para ver si hay discrepancias importantes entre las muestras
+
+```{r}
+# The names argument tells the barplot to use the sample names on the x-axis
+# The las argument rotates the axis names
+barplot(y$samples$lib.size,names=colnames(y),las=2)
+# Add a title to the plot
+title("Barplot of library sizes")
+```
+
+Los “ounting data” (datos de recuento) no se distribuyen segun una Distribución Normal, por lo que si queremos examinar las distribuciones de los recuentos sin procesar, utilizaremos Boxplots para verificar la distribución de los recuentos de lectura en escala log2.
+
+Podemos usar la función cpm para obtener recuentos de log2 por millón, corregidos por los library sizes (tamaños de biblioteca). La función cpm también incorpora una pequeña “modificación” para evitar el problema asociado al logaritmo de valores de cero.
+
+<h1> 10, Diagrama de cajas </h1>
+
+```{r}
+# Get log2 counts per million
+logcounts <- cpm(y,log=TRUE)
+# Check distributions of samples using boxplots
+boxplot(logcounts, xlab="", ylab="Log2 counts per million",las=2)
+# Let's add a blue horizontal line that corresponds to the median logCPM
+abline(h=median(logcounts),col="blue")
+title("Boxplots of logCPMs (unnormalised)")
+
+```
+
+De los boxplots, vemos que, en general, las distribuciones del counting data no son idénticas, pero tampoco son muy diferentes.
+
+Si una muestra está realmente muy por encima o por debajo de la línea horizontal azul, es posible que tengamos que investigar más esa muestra.
+
+<h1> 11. Multidimensional scaling plots</h1>
+
+Uno de los gráficos más importante en el Quality control es el MDS.
+Un MDSplot es un gráfico, que nos permite “visualizar” variabilidad en los datos. Si su experimento está bien “controlado”" y funcionó bien, lo que esperamos ver es que las principales fuentes de variación en los datos sean los tratamientos / grupos que nos interesan.
+
+También nos puede ayudar en “la visualización de valores atípicos. Podemos usar la función plotMDS para crear el diagrama de MDS.
+
+<h1> 10. Diagrama de MDS </h1>
+
+```{r}
+plotMDS(y)
+```
+La verdad es que no se ve muy bien :(
+
+
+<h1> 11. Hierarchical clustering with heatmaps </h1>
+
+Podemos complementar la visualización de los datos con la función heapmap.2 que nos permite+iria obtener la representación del cluster jerárquico de las muestras, en concreto, en este ejemplo, se grafica (a partir del método average) la matriz de distancias euclídeas del logCPM (objeto logcounts) para los 500 genes más variables. El diagrama del heatmap se representará en el último apartado.
+
+
+```{r}
+# We estimate the variance for each row in the logcounts matrix
+var_genes <- apply(logcounts, 1, var)
+head(var_genes)
+```
+
+
+```{r}
+# Get the gene names for the top 500 most variable genes
+select_var <- names(sort(var_genes, decreasing=TRUE))[1:500]
+head(select_var)
+```
+
+```{r}
+# Subset logcounts matrix
+highly_variable_lcpm <- logcounts[select_var,]
+dim(highly_variable_lcpm)
+```
+
+```{r}
+head(highly_variable_lcpm)
+```
+
+<h1> 12. Normalisation for “composition bias” </h1>
+
+El procesos de normalización denominado TMM se realiza para eliminar los sesgos de composición (bias compostion) entre las bibliotecas. 
+
+Este método genera un conjunto de factores de normalización, donde el producto de estos factores y los tamaños de la biblioteca (library sizes) definen el tamaño efectivo de la biblioteca (effective library size).
+
+La función calcNormFactors calcula los factores de normalización entre bibliotecas.
+
+```{r}
+# Apply normalisation to DGEList object
+y <- calcNormFactors(y)
+head(y)
+```
+Esta linea “actualizará”" los factores de normalización en el objeto DGEList (sus valores predeterminados son 1).
+
+```{r}
+y$samples
+```
+
+Un factor de normalización por debajo de uno indica que el tamaño de la biblioteca se reducirá, ya que “hay más sesgo de composición” (composition bias) en esa biblioteca en relación con las otras bibliotecas.
+
+Es decir estamos re-escalando los recuentos “incrementandolos” en esa muestra. Por el contrario, un factor por encima de uno es equivalente a “reesscalar a la baja” los recuentos.
+
+Si graficamos la diferencias medias usando la función plotMD para estas muestras, deberíamos poder ver el problema de sesgo de composición (bias composition).
+
+Utilizaremos los logcounts, “normalizados por el tamaño de la biblioteca” (library size)“, pero no para el sesgo de composición (bias composition)
+
+```{r}
+par(mfrow=c(1,2))
+plotMD(logcounts,column = 7)
+abline(h=0,col="grey")
+plotMD(logcounts,column = 11)
+abline(h=0,col="grey")
+```
+Los gráficos de “diferencia de medias”" muestran la expresión promedio (media: eje x) contra los cambios log-fold (diferencia: eje y).
+
+Debido a que nuestro objeto DGEList contiene los factores de normalización, si rehacemos estos gráficos usando y(el objeto y), deberíamos ver que el problema de sesgo de composición (bias composition) ha sido resuelto.
+
+```{r}
+par(mfrow=c(1,2))
+plotMD(y,column = 7)
+abline(h=0,col="grey")
+plotMD(y,column = 11)
+abline(h=0,col="grey")
+```
+```{r}
+par(mfrow=c(1,2))
+plotMD(y,column = 7)
+abline(h=0,col="grey")
+plotMD(y,column = 11)
+abline(h=0,col="grey")
+```
+<h1> 13. Differential expression with limma-voom </h1>
+
+Hay una serie de paquetes para analizar datos de RNA-Seq. El paquete limma (Ritchie et al., 2015) (desde la versión 3.16.0) ofrece la función voom, que transforma los recuentos de lectura en logCPM teniendo en cuenta la relación de la media y varianza de los datos (Law et al., 2014).
+
+Después de aplicar voom, los usuarios pueden aplicar un modelo lineal a los datos transformados por voom para identificar genes expresados diferencialmente, utilizando comandos estándar de limma.
+
+
+Leemos los targets seleccionados y los guardamos en una variable stargets. Despues determinamos los factores y niveles que tenemos. Vemos que nos salen los 3 niveles: SFI, NIT y ELI
+
+```{r}
+stargets<- read.csv2(file.path("./data", "stargets.csv"), head=T, sep=";")
+head(stargets,5)
+
+group<-factor(stargets$Group)
+group
+
+```
+
+<h2> Create the design matrix </h2>
+
+Primero, necesitamos crear una matriz de diseño para los grupos (lo teneis como material de consulta la guía del usuario de limma para obtener más información sobre las matrices de diseño y ya fue trabajado en la primera parte del curso).
+
+Hay muchas formas diferentes de configurar la matriz de diseño, y estan supeditadas a las comparaciones que se “quieren testar”.
+En este análisis, supongamos que queremos testar las diferencias de estado (status) en los diferentes tipos por separado.
+
+Por ejemplo, queremos saber qué genes se expresan diferencialmente 
+
+Anteriormente “hemos codificado como variable grupo”, que lleva implicito “cell type and status”.
+
+Codificar de esta manera nos permite ser flexibles al especificar las comparaciones que nos interesan
+
+
+```{r}
+# Look at group variable again
+group
+```
+```{r}
+# Specify a design matrix without an intercept term
+design <- model.matrix(~ 0 + group)
+design
+```
+```{r}
+## Make the column names of the design matrix a bit nicer
+colnames(design) <- levels(group)
+design
+```
+Cada columna de la matriz de diseño nos remite a las muestras que corresponden a cada grupo
+
+voom estima la tendencia de la varianza respecto a la media en el counting data, para luego asignar un peso a cada observación en función de la predicción de la varianza (segun el modelo que nos da la tendencia). Los pesos se usan luego en el proceso de modelado lineal para ajustar la heterocedasticidad.
+
+Asi pués voom ajustará automáticamente los tamaños de biblioteca (library size) utilizando norm.factors ya calculados.
+
+La transformación de voom usa la matriz de diseño de experimento y produce un objeto EList.
+
+Podemos agregar plot = TRUE para generar un gráfico de la tendencia de media-varianza.
+
+Este diagrama es importante ya que nos “informa” de si hay algún gen con “alta variabilidad” en nuestros datos, y sobretodo porque nos indica si hemos filtrado los recuentos bajos adecuadamente.
+
+Los recuentos log2 normalizados que nos aporta voom se pueden encontrar en v$E.
+
+```{r}
+par(mfrow=c(1,1))
+v <- voom(y,design,plot = TRUE)
+```
+```{r}
+v
+```
+Ahora podemos comparar los boxplot despues antes y despues de normalizar. Los valores de expresión en v$E ya son valores en escala logarítmica log2.
+
+```{r}
+par(mfrow=c(1,2))
+boxplot(logcounts, xlab="", ylab="Log2 counts per million",las=2,main="Non normalised logCPM")
+## Let's add a blue horizontal line that corresponds to the median logCPM
+abline(h=median(logcounts),col="blue")
+boxplot(v$E, xlab="", ylab="Log2 counts per million",las=2,main="Voom transformed logCPM")
+## Let's add a blue horizontal line that corresponds to the median logCPM
+abline(h=median(v$E),col="blue")
+```
+
+<h1> 14. Testing for differential expression </h1>
+
+Ahora que tenemos los datos obtenidos a partir de la función voom, podemos usar limma para obtener la expresión diferencial. Primero ajustamos un modelo lineal para cada gen usando la función lmFit en limma. lmFit necesita el objeto voom y la matriz de diseño que ya hemos especificado, que se encuentra dentro del objeto generado por voom
+
+```{r}
+# Fit the linear model
+fit <- lmFit(v)
+names(fit)
+```
+Hay una serie de elementos dentro del objetofit la mayoría de los cuales, son prácticamente idénticos a los vistos cuando aplicamos dicha función en la primera parte del microarray data analysis.
+
+Dado que estamos interesadosen obtener genes diferencialment expresados entre los grupos, debemos especificar qué comparaciones queremos probar.
+
+Las comparaciones se pueden especificar utilizando la función makeContrasts.
+
+Aquí, estamos interesados en saber qué genes se expresan diferencialmente entre los distintos grupos
+
+Los nombres de los grupos deben coincidir exactamente con los nombres de columna de la matriz de diseño.
+
+```{r}
+#cont.matrix <- makeContrasts(SFI-NIT,SFI-ELI,NIT-ELI,levels=design)
+cont.matrix <- makeContrasts(SFIvsNIT=SFI-NIT,SFIvsELI=SFI-ELI,NITvsELI=NIT-ELI,levels=design)
+cont.matrix
+```
+Las siguientes lineas se corresponden con las ya “presentadas y llevadas a cabo” y que se encuentran dentro del material de la primera parte de la asignatura.
+
+```{r}
+fit.cont <- contrasts.fit(fit, cont.matrix)
+fit.cont <- eBayes(fit.cont)
+```
+```{r}
+summa.fit <- decideTests(fit.cont)
+summary(summa.fit)
+```
+
+```{r}
+fit.cont
+```
+```{r}
+toptable_SFIvsELI<-topTable(fit.cont,coef="SFIvsELI",sort.by="p")
+toptable_SFIvsNIT<-topTable(fit.cont,coef="SFIvsNIT",sort.by="p")
+toptable_NITvsELI<-topTable(fit.cont,coef="NITvsELI",sort.by="p")
+```
+
+
+```{r}
+# View(toptable_SFIvsELI)
+# View(toptable_SFIvsNIT)
+# View(toptable_NITvsELI)
+```
+<h1> 15. Annotation and saving the results </h1>
+```{r}
+
+library(org.Hs.eg.db)
+columns(org.Hs.eg.db)
+```
+
+No he aconseguit crear les anotacions !
+
+```{r}
+# ann <- select(org.Hs.eg.db,keys=rownames(fit.cont),columns=c("ENTREZID","SYMBOL","GENENAME"))
+```
+
+
+<h1> 16. Volcano Plot </h1>
+
+```{r}
+# We want to highlight the significant genes. We can get this from decideTests.
+par(mfrow=c(1,2))
+plotMD(fit.cont,coef=1,status=summa.fit[,"SFIvsNIT"], values = c(-1, 1))
+
+# For the volcano plot we have to specify how many of the top genes to highlight.
+# We can also specify that we want to plot the gene symbol for the highlighted genes.
+# let's highlight the top 100 most DE genes
+volcanoplot(fit.cont,coef=1,highlight=100,names=fit.cont$genes$SYMBOL)
+```
+ Hay una función llamada treat en el paquete limma (McCarthy y Smyth 2009) que a partir del objeto fit.conty de de un “log fold change (logFC)” determinado por el usuario como “threshold” permite “recalcular the”moderate t-statistics and p-values" . Este procedimiento es mucho más “preciso” “en el control de falsos positivos” que “listar” los p-valores y descartar a continuación genes con logFC pequeños.
+
+
+```{r}
+# This is easy to do after our analysis, we just give the treat function the fit.cont object and specify our cut-off.
+fit.treat <- treat(fit.cont,lfc=1)
+res.treat <- decideTests(fit.treat)
+summary(res.treat)
+```
+
+```{r}
+topTable(fit.treat,coef=1,sort.by="p")
+```
+
+
+
+
+
+```{r}
+# Notice that much fewer genes are highlighted in the MAplot
+par(mfrow=c(1,3))
+plotMD(fit.treat,coef=1,status=res.treat[,"SFIvsNIT"], values=c(-1,1))
+abline(h=0,col="grey")
+plotMD(fit.treat,coef=2,status=res.treat[,"SFIvsELI"], values=c(-1,1))
+abline(h=0,col="grey")
+plotMD(fit.treat,coef=2,status=res.treat[,"NITvsELI"], values=c(-1,1))
+abline(h=0,col="grey")
+```
+
+
+<h1> 17. HeatMap </h1>
+
+Finalmente dibujaremos el HeatMap que no se representó en el apartado 11 y quedaba pendiente.
+
+```{r}
+## Get some nicer colours
+mypalette <- brewer.pal(11,"RdYlBu")
+morecols <- colorRampPalette(mypalette)
+# Set up colour vector for celltype variable
+col.cell <- c("purple","orange")[stargets$Group]
+
+# Plot the heatmap
+par(mfrow=c(1,1))
+heatmap.2(highly_variable_lcpm,col=rev(morecols(50)),trace="none", main="Top 500 most variable genes across samples",ColSideColors=col.cell,scale="row")
+```
+
+<h1> 18. Referencias: </h1>
+
+www.google.com
+
+RNAseqTutorialUOCv2.html
+
+Statistical analysis of RNA-seq data.pdf
+
+
+
+
+
