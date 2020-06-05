@@ -203,7 +203,7 @@ Un MDSplot es un gráfico, que nos permite “visualizar” variabilidad en los 
 
 También nos puede ayudar en “la visualización de valores atípicos. Podemos usar la función plotMDS para crear el diagrama de MDS.
 
-<h1> 10. Diagrama de MDS </h1>
+<h2>Diagrama de MDS </h2>
 
 ```{r}
 plotMDS(y)
@@ -211,7 +211,7 @@ plotMDS(y)
 La verdad es que no se ve muy bien :(
 
 
-<h1> 11. Hierarchical clustering with heatmaps </h1>
+<h1> 12. Hierarchical clustering with heatmaps </h1>
 
 Podemos complementar la visualización de los datos con la función heapmap.2 que nos permite+iria obtener la representación del cluster jerárquico de las muestras, en concreto, en este ejemplo, se grafica (a partir del método average) la matriz de distancias euclídeas del logCPM (objeto logcounts) para los 500 genes más variables. El diagrama del heatmap se representará en el último apartado.
 
@@ -239,7 +239,7 @@ dim(highly_variable_lcpm)
 head(highly_variable_lcpm)
 ```
 
-<h1> 12. Normalisation for “composition bias” </h1>
+<h1> 13. Normalization for “composition bias” </h1>
 
 El procesos de normalización denominado TMM se realiza para eliminar los sesgos de composición (bias compostion) entre las bibliotecas. 
 
@@ -291,7 +291,7 @@ abline(h=0,col="grey")
 plotMD(y,column = 11)
 abline(h=0,col="grey")
 ```
-<h1> 13. Differential expression with limma-voom </h1>
+<h1> 14. Differential expression with limma-voom </h1>
 
 Hay una serie de paquetes para analizar datos de RNA-Seq. El paquete limma (Ritchie et al., 2015) (desde la versión 3.16.0) ofrece la función voom, que transforma los recuentos de lectura en logCPM teniendo en cuenta la relación de la media y varianza de los datos (Law et al., 2014).
 
@@ -370,7 +370,7 @@ boxplot(v$E, xlab="", ylab="Log2 counts per million",las=2,main="Voom transforme
 abline(h=median(v$E),col="blue")
 ```
 
-<h1> 14. Testing for differential expression </h1>
+<h1> 15. Testing for differential expression </h1>
 
 Ahora que tenemos los datos obtenidos a partir de la función voom, podemos usar limma para obtener la expresión diferencial. Primero ajustamos un modelo lineal para cada gen usando la función lmFit en limma. lmFit necesita el objeto voom y la matriz de diseño que ya hemos especificado, que se encuentra dentro del objeto generado por voom
 
@@ -420,7 +420,7 @@ toptable_NITvsELI<-topTable(fit.cont,coef="NITvsELI",sort.by="p")
 # View(toptable_SFIvsNIT)
 # View(toptable_NITvsELI)
 ```
-<h1> 15. Annotation and saving the results </h1>
+<h1> 16. Annotation and saving the results </h1>
 ```{r}
 
 library(org.Hs.eg.db)
@@ -434,7 +434,7 @@ No he aconseguit crear les anotacions !
 ```
 
 
-<h1> 16. Volcano Plot </h1>
+<h1> 17. Volcano Plot </h1>
 
 ```{r}
 # We want to highlight the significant genes. We can get this from decideTests.
@@ -476,9 +476,9 @@ abline(h=0,col="grey")
 ```
 
 
-<h1> 17. HeatMap </h1>
+<h1> 18. HeatMap </h1>
 
-Finalmente dibujaremos el HeatMap que no se representó en el apartado 11 y quedaba pendiente.
+Finalmente dibujaremos el HeatMap que no se representó en el apartado 12 y quedaba pendiente.
 
 ```{r}
 ## Get some nicer colours
@@ -492,7 +492,7 @@ par(mfrow=c(1,1))
 heatmap.2(highly_variable_lcpm,col=rev(morecols(50)),trace="none", main="Top 500 most variable genes across samples",ColSideColors=col.cell,scale="row")
 ```
 
-<h1> 18. Referencias: </h1>
+<h1> 19. Referencias: </h1>
 
 www.google.com
 
