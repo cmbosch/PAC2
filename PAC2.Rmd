@@ -80,7 +80,7 @@ Asimismo añaden “ruido”" en el ajuste por múltiple testing mediante FDR, r
 
 Estos genes deben filtrarse antes de un análisis posterior.
 
-Hay diferentes maneras de filtrar genes poco expresados. En este caso establecemos optamos por retener los genes si se expresan en un conteo por millón (CPM) por encima de 0.5 en al menos dos muestras.
+Hay diferentes maneras de filtrar genes poco expresados. En este caso optamos por retener los genes si se expresan en un conteo por millón (CPM) por encima de 0.5 en al menos dos muestras.
 
 Utilizaremos la función cpm del package edgeR para generar los valores de CPM y luego filtrar. Hay que tener presente que al convertir a CPM estamos normalizando segun el “Sequencing depth” de cada muestra.
 
@@ -499,6 +499,8 @@ www.google.com
 RNAseqTutorialUOCv2.html
 
 Statistical analysis of RNA-seq data.pdf
+
+IntroToAnnotationPackages.pdf
 
 ENLACE A GitHub:
 
