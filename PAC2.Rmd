@@ -7,6 +7,32 @@ output:
   pdf_document: default
 ---
 
+<h2>Índice</h2>
+<ol>
+      <li>Entorno de trabajo y lectura de ficheros</li>
+      <li>Elección de datos de cada grupo de targets</li>
+      <li>Extracción aleatoriade muestras de cada grupo</li>
+      <li>Coincidencias con el archivo counts.csv</li>
+      <li>Packages</li>
+      <li>Lectura de datos y filtrado y eliminación de genes con contaje bajo</li>
+      <li>Counts to DGEList object</li>
+      <li>Quality Control</li>
+	    <li>Diagrama de barras de los library sizes</li>
+	    <li>Diagrama de cajas</li>
+	    <li>Multidimensional scaling plots</li>
+	    <li>Hierarchical clustering with heatmaps</li>
+	    <li>Normalization for "composition bias"</li>
+	    <li>Differential expression with limma-voom</li>
+	    <li>Create the design matrix</li>
+	    <li>Testing for differential expression</li>
+	    <li>Annotation and saving the results</li>
+	    <li>Volcano plot</li>
+	    <li>Heatmap</li>
+	    <li>Referencias</li>
+</ol>
+<hr />
+
+
 <h1> 1. Entorno de trabajo y lectura de ficheros </h1>
 Creamos el entorno de trabajo y leemos el fichero targets.csv
 

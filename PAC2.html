@@ -369,6 +369,72 @@ summary {
 </div>
 
 
+<h2>
+Índice
+</h2>
+<ol>
+<li>
+Entorno de trabajo y lectura de ficheros
+</li>
+<li>
+Elección de datos de cada grupo de targets
+</li>
+<li>
+Extracción aleatoriade muestras de cada grupo
+</li>
+<li>
+Coincidencias con el archivo counts.csv
+</li>
+<li>
+Packages
+</li>
+<li>
+Lectura de datos y filtrado y eliminación de genes con contaje bajo
+</li>
+<li>
+Counts to DGEList object
+</li>
+<li>
+Quality Control
+</li>
+<li>
+Diagrama de barras de los library sizes
+</li>
+<li>
+Diagrama de cajas
+</li>
+<li>
+Multidimensional scaling plots
+</li>
+<li>
+Hierarchical clustering with heatmaps
+</li>
+<li>
+Normalization for “composition bias”
+</li>
+<li>
+Differential expression with limma-voom
+</li>
+<li>
+Create the design matrix
+</li>
+<li>
+Testing for differential expression
+</li>
+<li>
+Annotation and saving the results
+</li>
+<li>
+Volcano plot
+</li>
+<li>
+Heatmap
+</li>
+<li>
+Referencias
+</li>
+</ol>
+<hr />
 <h1>
 <ol style="list-style-type: decimal">
 <li>Entorno de trabajo y lectura de ficheros
@@ -452,73 +518,73 @@ muestra.ELI = datos_ELI[sample(nrow(datos_ELI),10) , ]
 
 muestra.NIT</code></pre>
 <pre><code>##     Experiment SRA_Sample              Sample_Name Grupo_analisis body_site
-## 248  SRX640007  SRS650067  GTEX-YEC3-0826-SM-4WWFP              1   Thyroid
-## 175  SRX199142  SRS333029  GTEX-QDVN-0626-SM-2I3FP              1   Thyroid
-## 191  SRX624095  SRS645941  GTEX-RTLS-0626-SM-5SI7Z              1   Thyroid
-## 115  SRX628518  SRS648208 GTEX-13PDP-1026-SM-5L3FA              1   Thyroid
-## 150  SRX598380  SRS637638 GTEX-14C38-0826-SM-5S2U8              1   Thyroid
-## 190  SRX203566  SRS374756  GTEX-RNOR-0926-SM-2TF56              1   Thyroid
-## 75   SRX634127  SRS648842 GTEX-1399T-0126-SM-5KM15              1   Thyroid
-## 227  SRX416834  SRS525320  GTEX-X8HC-0726-SM-46MWG              1   Thyroid
-## 160  SRX199314  SRS333050  GTEX-OXRL-2626-SM-2I3F1              1   Thyroid
+## 272  SRX576876  SRS629440  GTEX-ZTPG-0826-SM-5DUVC              1   Thyroid
+## 260  SRX605489  SRS639266  GTEX-ZDYS-0626-SM-5J2N5              1   Thyroid
+## 63   SRX562679  SRS625471 GTEX-13113-0126-SM-5LZVX              1   Thyroid
+## 77   SRX595327  SRS636334 GTEX-139T6-0326-SM-5J2LY              1   Thyroid
 ## 198  SRX221576  SRS389117  GTEX-S32W-0726-SM-2XCBL              1   Thyroid
+## 266  SRX640567  SRS650126  GTEX-ZLWG-0526-SM-4WWFB              1   Thyroid
+## 116  SRX617167  SRS644419 GTEX-13PL6-1026-SM-5L3E5              1   Thyroid
+## 281  SRX615023  SRS644053  GTEX-ZVZQ-0626-SM-59HJU              1   Thyroid
+## 256  SRX594942  SRS636243  GTEX-ZAB5-0726-SM-5P9JG              1   Thyroid
+## 209  SRX221407  SRS389066  GTEX-T8EM-0226-SM-3DB7C              1   Thyroid
 ##            molecular_data_type    sex Group ShortName
-## 248 Allele-Specific Expression   male   NIT YEC3-_NIT
-## 175              RNA Seq (NGS)   male   NIT QDVN-_NIT
-## 191 Allele-Specific Expression female   NIT RTLS-_NIT
-## 115              RNA Seq (NGS)   male   NIT 13PDP_NIT
-## 150 Allele-Specific Expression   male   NIT 14C38_NIT
-## 190              RNA Seq (NGS) female   NIT RNOR-_NIT
-## 75  Allele-Specific Expression   male   NIT 1399T_NIT
-## 227              RNA Seq (NGS) female   NIT X8HC-_NIT
-## 160              RNA Seq (NGS)   male   NIT OXRL-_NIT
-## 198 Allele-Specific Expression female   NIT S32W-_NIT</code></pre>
+## 272              RNA Seq (NGS) female   NIT ZTPG-_NIT
+## 260              RNA Seq (NGS)   male   NIT ZDYS-_NIT
+## 63               RNA Seq (NGS) female   NIT 13113_NIT
+## 77               RNA Seq (NGS)   male   NIT 139T6_NIT
+## 198 Allele-Specific Expression female   NIT S32W-_NIT
+## 266 Allele-Specific Expression female   NIT ZLWG-_NIT
+## 116 Allele-Specific Expression female   NIT 13PL6_NIT
+## 281 Allele-Specific Expression female   NIT ZVZQ-_NIT
+## 256 Allele-Specific Expression   male   NIT ZAB5-_NIT
+## 209              RNA Seq (NGS)   male   NIT T8EM-_NIT</code></pre>
 <pre class="r"><code>muestra.SFI</code></pre>
 <pre><code>##     Experiment SRA_Sample              Sample_Name Grupo_analisis body_site
-## 188  SRX203696  SRS374817  GTEX-RM2N-0526-SM-2TF4N              2   Thyroid
-## 83   SRX561460  SRS625222 GTEX-13FH7-0126-SM-5KLZ1              2   Thyroid
-## 232  SRX407488  SRS524425  GTEX-XMK1-0626-SM-4B65A              2   Thyroid
-## 58   SRX601535  SRS638117 GTEX-12ZZX-1226-SM-5EGHS              2   Thyroid
-## 162  SRX221693  SRS389159  GTEX-OXRP-0326-SM-33HBJ              2   Thyroid
-## 203  SRX223043  SRS389833  GTEX-SIU8-0626-SM-2XCDN              2   Thyroid
-## 30   SRX559198  SRS624031 GTEX-11O72-2326-SM-5BC7H              2   Thyroid
-## 37   SRX616143  SRS644194 GTEX-11TUW-0226-SM-5LU8X              2   Thyroid
+## 224  SRX260552  SRS408366  GTEX-WYVS-0326-SM-3NM9V              2   Thyroid
+## 99   SRX631499  SRS648541 GTEX-13NZ8-0226-SM-5J2OK              2   Thyroid
 ## 9    SRX557750  SRS623875 GTEX-117YW-0126-SM-5EGGN              2   Thyroid
-## 210  SRX222167  SRS389523  GTEX-TKQ1-0126-SM-33HB3              2   Thyroid
+## 261  SRX596158  SRS636581  GTEX-ZE7O-1126-SM-57WC8              2   Thyroid
+## 265  SRX597594  SRS637292  GTEX-ZLV1-0126-SM-4WWBZ              2   Thyroid
+## 212  SRX221390  SRS389060  GTEX-TSE9-0626-SM-3DB8B              2   Thyroid
+## 30   SRX559198  SRS624031 GTEX-11O72-2326-SM-5BC7H              2   Thyroid
+## 23   SRX567902  SRS627040 GTEX-11GS4-0826-SM-5986J              2   Thyroid
+## 79   SRX597654  SRS637303 GTEX-139UW-0126-SM-5KM1B              2   Thyroid
+## 232  SRX407488  SRS524425  GTEX-XMK1-0626-SM-4B65A              2   Thyroid
 ##            molecular_data_type    sex Group ShortName
-## 188              RNA Seq (NGS)   male   SFI RM2N-_SFI
-## 83  Allele-Specific Expression female   SFI 13FH7_SFI
-## 232              RNA Seq (NGS)   male   SFI XMK1-_SFI
-## 58               RNA Seq (NGS) female   SFI 12ZZX_SFI
-## 162              RNA Seq (NGS) female   SFI OXRP-_SFI
-## 203 Allele-Specific Expression   male   SFI SIU8-_SFI
-## 30               RNA Seq (NGS)   male   SFI 11O72_SFI
-## 37               RNA Seq (NGS)   male   SFI 11TUW_SFI
+## 224              RNA Seq (NGS) female   SFI WYVS-_SFI
+## 99  Allele-Specific Expression female   SFI 13NZ8_SFI
 ## 9                RNA Seq (NGS)   male   SFI 117YW_SFI
-## 210              RNA Seq (NGS)   male   SFI TKQ1-_SFI</code></pre>
+## 261 Allele-Specific Expression female   SFI ZE7O-_SFI
+## 265 Allele-Specific Expression female   SFI ZLV1-_SFI
+## 212              RNA Seq (NGS) female   SFI TSE9-_SFI
+## 30               RNA Seq (NGS)   male   SFI 11O72_SFI
+## 23               RNA Seq (NGS)   male   SFI 11GS4_SFI
+## 79  Allele-Specific Expression   male   SFI 139UW_SFI
+## 232              RNA Seq (NGS)   male   SFI XMK1-_SFI</code></pre>
 <pre class="r"><code>muestra.ELI</code></pre>
 <pre><code>##     Experiment SRA_Sample              Sample_Name Grupo_analisis body_site
 ## 186  SRX204036  SRS374975  GTEX-R55G-0726-SM-2TC6J              3   Thyroid
-## 149  SRX568916  SRS627158 GTEX-14BMU-0226-SM-5S2QA              3   Thyroid
+## 146  SRX575932  SRS629299 GTEX-14ABY-0926-SM-5Q5DY              3   Thyroid
+## 100  SRX582762  SRS631169 GTEX-13NZ9-1126-SM-5MR37              3   Thyroid
 ## 3    SRX563960  SRS625636 GTEX-111VG-0526-SM-5N9BW              3   Thyroid
-## 147  SRX607358  SRS639491 GTEX-14AS3-0226-SM-5Q5B6              3   Thyroid
-## 290  SRX568364  SRS627095  GTEX-ZYY3-1926-SM-5GZXS              3   Thyroid
+## 149  SRX568916  SRS627158 GTEX-14BMU-0226-SM-5S2QA              3   Thyroid
 ## 167  SRX199272  SRS333099  GTEX-PLZ4-1226-SM-2I5FE              3   Thyroid
-## 211  SRX222429  SRS389623  GTEX-TMMY-0826-SM-33HB9              3   Thyroid
+## 29   SRX628009  SRS648152 GTEX-11NV4-0626-SM-5N9BR              3   Thyroid
+## 290  SRX568364  SRS627095  GTEX-ZYY3-1926-SM-5GZXS              3   Thyroid
 ## 251  SRX615373  SRS644099  GTEX-YFC4-2626-SM-5P9FQ              3   Thyroid
-## 119  SRX601511  SRS638114 GTEX-13QJC-0826-SM-5RQKC              3   Thyroid
-## 40   SRX619829  SRS644736 GTEX-11XUK-0226-SM-5EQLW              3   Thyroid
+## 253  SRX583148  SRS631283  GTEX-YJ89-0726-SM-5P9F7              3   Thyroid
 ##            molecular_data_type    sex Group ShortName
 ## 186              RNA Seq (NGS) female   ELI R55G-_ELI
-## 149 Allele-Specific Expression female   ELI 14BMU_ELI
+## 146 Allele-Specific Expression   male   ELI 14ABY_ELI
+## 100              RNA Seq (NGS)   male   ELI 13NZ9_ELI
 ## 3                RNA Seq (NGS)   male   ELI 111VG_ELI
-## 147              RNA Seq (NGS) female   ELI 14AS3_ELI
-## 290 Allele-Specific Expression female   ELI ZYY3-_ELI
+## 149 Allele-Specific Expression female   ELI 14BMU_ELI
 ## 167              RNA Seq (NGS) female   ELI PLZ4-_ELI
-## 211 Allele-Specific Expression female   ELI TMMY-_ELI
+## 29               RNA Seq (NGS)   male   ELI 11NV4_ELI
+## 290 Allele-Specific Expression female   ELI ZYY3-_ELI
 ## 251 Allele-Specific Expression female   ELI YFC4-_ELI
-## 119 Allele-Specific Expression female   ELI 13QJC_ELI
-## 40               RNA Seq (NGS) female   ELI 11XUK_ELI</code></pre>
+## 253              RNA Seq (NGS)   male   ELI YJ89-_ELI</code></pre>
 <h1>
 <ol start="4" style="list-style-type: decimal">
 <li>Coincidencias con el archivo counts.csv
