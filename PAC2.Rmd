@@ -310,13 +310,7 @@ abline(h=0,col="grey")
 plotMD(y,column = 11)
 abline(h=0,col="grey")
 ```
-```{r}
-par(mfrow=c(1,2))
-plotMD(y,column = 7)
-abline(h=0,col="grey")
-plotMD(y,column = 11)
-abline(h=0,col="grey")
-```
+.
 <h1> 14. Differential expression with limma-voom </h1>
 
 Hay una serie de paquetes para analizar datos de RNA-Seq. El paquete limma (Ritchie et al., 2015) (desde la versión 3.16.0) ofrece la función voom, que transforma los recuentos de lectura en logCPM teniendo en cuenta la relación de la media y varianza de los datos (Law et al., 2014).
