@@ -33,7 +33,7 @@ output:
 <hr />
 
 El objetivo de esta PEC es ilustrar el proceso de análisis de datos de ultrasecuenciación mediante  la realización de un estudio, tal como se llevaria a cabo en una situación real.
-La PEC se basa en los datos suministrados de un estudio del que se debe extraer una muestra aleatoria con el fin de garantizar que cada conjunto de datos sea distinto.
+La PEC se basa en los datos suministrados de un estudio del que se debe extraer una muestra aleatoria con el fin de garantizar que cada conjunto de datos sea distinto. 
 
 
 <h1> 1. Entorno de trabajo y lectura de ficheros </h1>
@@ -98,6 +98,7 @@ library (limma)
 library(Glimma)
 library(gplots)
 library(org.Mm.eg.db)
+library(org.Hs.eg.db)
 library(RColorBrewer)
 library(DESeq2)
 ```
